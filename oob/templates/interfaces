@@ -1,0 +1,17 @@
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+# The primary network interface
+auto eth0
+iface eth0 inet static
+	address {{ ansible_default_ipv4.address }}
+	netmask {{ ansible_default_ipv4.netmask }}
+	gateway {{ ansible_default_ipv4.gateway }}
+	up route add -net 71.19.144.0/20 gw {{ ansible_default_ipv4.gateway }} dev eth0
+	up route add -net 216.218.128.0/17 gw {{ ansible_default_ipv4.gateway }} dev eth0
+	up route add -net 64.62.128.0/17 gw {{ ansible_default_ipv4.gateway }} dev eth0
+

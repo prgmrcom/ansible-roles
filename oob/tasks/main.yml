@@ -1,0 +1,78 @@
+---
+
+- name: copy incron config
+  copy: src=incron.ttyACM0 dest=/etc/incron.d/ttyACM0 owner=root group=root mode=644
+
+- name: install incron
+  apt: name=incron
+
+- name: ensure network manager installed
+  apt: name=network-manager
+
+- name: ensure modem manager installed
+  apt: pkg=modemmanager
+
+- name: install usb modeswitch 
+  apt: pkg=usb-modeswitch
+
+- name: copy network manager tmobile config
+  copy: backup=yes src=t-mobile dest=/etc/NetworkManager/system-connections/t-mobile owner=root group=root mode=600
+
+- name: copy zte mf591 modeswitch conf
+  copy: src=zte-mf591.conf dest=/etc/usb_modeswitch.d/zte-mf591.conf owner=root group=root mode=644
+
+- name: copy zte mf591 udev rules
+  copy: src=91-zte-mf591.rules dest=/etc/udev/rules.d/91-zte-mf591.rules owner=root group=root mode=644
+
+- name: ensure panic=10 and sysrq in kernel cmdline
+  lineinfile:  "backup=yes dest=/etc/default/grub line='GRUB_CMDLINE_LINUX_DEFAULT=\"$GRUB_CMDLINE_LINUX_DEFAULT panic=10 sysrq_always_enabled\"' 
+               state=present insertafter='^GRUB_CMDLINE_LINUX_DEFAULT[^\n]+\n'"
+  notify:
+    update-grub
+
+- name: enable watchdog
+  apt: pkg=watchdog
+
+- name: set up static routes for eth0
+  template: backup=yes src=interfaces dest=/etc/network/interfaces owner=root group=root mode=644
+  notify: bounce eth0
+  when: ansible_default_ipv4.interface == 'eth0'
+
+- name: add oob user
+  user: name=oob comment='oob user' createhome=yes state=present generate_ssh_key=yes
+
+- name: fetch oob user key
+  fetch: fail_on_missing=yes flat=yes dest=files/oob/oob_user.pub src=/home/oob/.ssh/id_rsa.pub
+
+- name: ensure external oob in hosts
+  lineinfile: "backup=yes dest=/etc/hosts line='{{ external-oob-host }} external-oob'"
+
+- name: copy script for opening reverse ssh tunnel
+  copy: src=reverse-ssh dest=/usr/local/bin/reverse-ssh owner=root group=root mode=755
+  notify: kill oob tunnel
+
+- name: copy script for bouncing t-mobile
+  copy: src=bounce-tmobile dest=/usr/local/bin/bounce-tmobile owner=root group=root mode=755
+  
+- name: allow anyone to open reverse ssh tunnel
+  lineinfile: "validate='visudo -cf %s' dest=/etc/sudoers state=present line='ALL ALL=(oob) NOPASSWD: /usr/bin/ssh'"
+
+#TODO: monit package installs monitoring for a whole bunch of stuff we may not want
+- name: install monit
+  apt: pkg=monit
+
+- name: copy monitrc
+  copy: src=monitrc dest=/etc/monit/monitrc owner=root group=root mode=600
+  notify: reload monit
+
+- name: install external-oob monit cfg
+  copy: src=monit.external-oob dest=/etc/monit/monitrc.d/external-oob owner=root group=root mode=644
+  notify: reload monit
+
+- name: install reverse ssh monit cfg
+  copy: src=monit.reverse-ssh dest=/etc/monit/monitrc.d/reverse-ssh owner=root group=root mode=644
+  notify: reload monit
+
+#- name: fix up monit rsyslog
+#  replace: dest=/etc/monit/monitrc.d/rsyslog regexp='/var/log/messages' replace='/var/log/syslog'
+#  notify: reload monit

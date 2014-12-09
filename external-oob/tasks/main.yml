@@ -1,0 +1,19 @@
+- name: add oob user
+  user: name=oob comment='oob user' createhome=yes state=present generate_ssh_key=no
+
+- name: manage oob user key
+  authorized_key: "user=oob key='{{ lookup('file','../../../files/oob/oob_user.pub' ) }}' state=present"
+
+- name: allow gateway ports
+  lineinfile: backup=yes dest=/etc/ssh/sshd_config line='GatewayPorts yes'
+  notify: restart ssh
+
+- name: copy iptables
+  copy: src=iptables dest=/etc/sysconfig/iptables owner=root group=root mode=600
+  notify:
+    - reload iptables
+
+- name: copy ip6tables
+  copy: src=ip6tables dest=/etc/sysconfig/ip6tables owner=root group=root mode=600
+  notify:
+    - reload ip6tables

@@ -1,0 +1,4 @@
+check host external-oob with address external-oob
+	if failed
+		icmp type echo count 3 with timeout 20 seconds
+	then exec /usr/local/bin/bounce-tmobile

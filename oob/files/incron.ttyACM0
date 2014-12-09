@@ -1,0 +1,1 @@
+/dev/ttyACM0 IN_CREATE nmcli con up id t-mobile

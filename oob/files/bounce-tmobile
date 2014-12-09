@@ -1,0 +1,4 @@
+#!/bin/sh
+
+nmcli con down id t-mobile
+nmcli con up id t-mobile

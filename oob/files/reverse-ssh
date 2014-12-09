@@ -1,0 +1,8 @@
+#!/bin/sh
+
+if [ "$1" = "start" ] ; then
+	$0 &
+	exit 0
+fi
+
+sudo -u oob ssh -o ServerAliveInterval=120 -N -n -Rexternal-oob:1234:localhost:22 external-oob

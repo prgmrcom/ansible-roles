@@ -1,0 +1,13 @@
+---
+- name: update-grub
+  command: /usr/sbin/update-grub
+
+- name: bounce eth0
+  shell: ifdown eth0 && ifup eth0
+
+- name: reload monit
+  service: name=monit state=reloaded
+
+- name: kill oob tunnel
+  command: /usr/bin/pkill -u oob
+  ignore_errors: True

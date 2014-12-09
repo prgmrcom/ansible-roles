@@ -1,0 +1,10 @@
+check process reverse-ssh
+	matching /usr/local/bin/reverse-ssh
+	start program = "/usr/local/bin/reverse-ssh start"
+	stop program = "/bin/true"
+
+check host oob-ssh with address external-oob
+	start program = "/usr/local/bin/reverse-ssh start"
+	stop program = "/usr/bin/killall -9 -u oob"
+  if failed port 1234 type tcp with timeout 20 seconds for 3 cycles
+  then restart

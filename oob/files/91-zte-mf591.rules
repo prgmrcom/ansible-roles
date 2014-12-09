@@ -1,0 +1,4 @@
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="19d2", ATTRS{idProduct}=="1523", \
+RUN+="/usr/sbin/usb_modeswitch -c /etc/usb_modeswitch.d/zte-mf591.conf"
+#SUBSYSTEMS=="usb", ATTRS{idVendor}=="0922", ATTRS{idProduct}=="1002", MODE="0660", GROUP="plugdev"
+
